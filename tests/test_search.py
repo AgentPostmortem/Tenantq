@@ -38,3 +38,32 @@ def test_created_at_range_filter(ingested, settings, embedder, dataset):
     by_id = {d.id: d for d in dataset.documents}
     for h in hits:
         assert lo <= by_id[h.id].created_at <= hi
+
+
+def test_build_filter_rejects_empty_tenant_id():
+    import pytest
+    from tenantq.search import UnscopedTenantError, build_filter
+
+    with pytest.raises(UnscopedTenantError, match="not scoped"):
+        build_filter("")
+    with pytest.raises(UnscopedTenantError, match="not scoped"):
+        build_filter("   ")
+
+
+def test_build_filter_allows_tenant_id_with_internal_spaces():
+    from tenantq.search import build_filter
+
+    # Valid id that happens to contain spaces must not be stripped to empty
+    f = build_filter("acme corp")
+    assert f.must is not None
+    assert f.must[0].match.value == "acme corp"
+
+
+def test_search_rejects_empty_tenant_id(ingested, settings, embedder):
+    import pytest
+    from tenantq.search import UnscopedTenantError, search
+
+    with pytest.raises(UnscopedTenantError, match="not scoped"):
+        search(ingested, settings, embedder, "query", tenant_id="")
+    with pytest.raises(UnscopedTenantError, match="not scoped"):
+        search(ingested, settings, embedder, "query", tenant_id="  \t")

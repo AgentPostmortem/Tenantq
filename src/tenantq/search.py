@@ -28,6 +28,23 @@ from .metrics import QUERY_LATENCY
 Mode = Literal["dense", "sparse", "hybrid"]
 
 
+class UnscopedTenantError(ValueError):
+    """Raised when a search is attempted without a real tenant scope."""
+
+
+def require_tenant_id(tenant_id: str) -> str:
+    """Reject empty/whitespace tenant ids so they never become MatchValue("").
+
+    An empty tenant looks like "no documents" to callers; the truth is the
+    request was never scoped. Call this at the filter boundary.
+    """
+    if tenant_id is None or not str(tenant_id).strip():
+        raise UnscopedTenantError(
+            "request was not scoped: tenant_id is empty or whitespace-only"
+        )
+    return tenant_id
+
+
 @dataclass
 class SearchHit:
     id: int
@@ -44,6 +61,7 @@ def build_filter(
     created_before: Optional[int] = None,
 ) -> models.Filter:
     """Build a tenant-scoped filter, optionally narrowed by metadata."""
+    tenant_id = require_tenant_id(tenant_id)
     must: List[models.FieldCondition] = [
         models.FieldCondition(key=TENANT_FIELD, match=models.MatchValue(value=tenant_id))
     ]
@@ -91,6 +109,7 @@ def search(
     prefetch_limit: int = 50,
 ) -> List[SearchHit]:
     """Run a tenant-isolated search in the requested retrieval mode."""
+    tenant_id = require_tenant_id(tenant_id)
     qfilter = build_filter(tenant_id, category, created_after, created_before)
     params = models.SearchParams(hnsw_ef=settings.hnsw.hnsw_ef)
 
