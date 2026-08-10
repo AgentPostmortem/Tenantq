@@ -67,20 +67,25 @@ sparse-only modes are exposed too, so the benchmark can compare all three.
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-# Run the real benchmark (downloads the embedding models on first run).
-tenantq benchmark --embedder fastembed
-
-# Fully offline (deterministic hash embedder, no downloads) — used by CI/tests:
-tenantq benchmark --embedder hash
-
-# One-off tenant-scoped search against an ingested collection:
-tenantq search "vector similarity ranking" --tenant acme --mode hybrid
+# Fastest first check (no model downloads; used by CI):
+pytest -q
 ```
 
-By default everything runs against an in-process Qdrant (`:memory:`), which
-supports sparse vectors and Query API fusion — so the benchmark produces genuine
-numbers with zero infrastructure. Point at a real server by setting `QDRANT_URL`
-(see Docker below).
+Expected: a short green summary ending with `passed` (and no failures).
+
+```bash
+# Fully offline benchmark (deterministic hash embedder, no downloads):
+tenantq benchmark --embedder hash
+
+# Full embedder (downloads models on first run):
+tenantq benchmark --embedder fastembed
+
+# One-off tenant-scoped search against an ingested collection:
+tenantq search "neural networks" --tenant acme --mode hybrid --limit 5 --embedder hash
+```
+
+`tenant_id` / `--tenant` is mandatory. Empty tenant is refused (not treated as "zero hits").
+
 
 ## Configuration
 
