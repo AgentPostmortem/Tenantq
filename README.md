@@ -71,12 +71,33 @@ pip install -e ".[dev]"
 pytest -q
 ```
 
-Expected: a short green summary ending with `passed` (and no failures).
+Expected output (counts may grow as tests are added):
+
+```
+........                                                                 [100%]
+```
 
 ```bash
 # Fully offline benchmark (deterministic hash embedder, no downloads):
 tenantq benchmark --embedder hash
+```
 
+Expected shape (absolute numbers vary by machine; modes and columns do not):
+
+```
+[ingest] 450 points in 0.42s (1071 pts/s)
+### ingest throughput: 1071 pts/s
+
+HNSW m=16 ef_construct=100 hnsw_ef=64 multitenant=True payload_m=16 docs=450 queries=30
+
+| mode | recall@5 | recall@10 | index_recall@10 | p50 ms | p95 ms | p99 ms | qps |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| dense | 0.xxx | 0.xxx | 0.xxx | ... | ... | ... | ... |
+| sparse | 0.xxx | 0.xxx | n/a | ... | ... | ... | ... |
+| hybrid | 0.xxx | 0.xxx | n/a | ... | ... | ... | ... |
+```
+
+```bash
 # Full embedder (downloads models on first run):
 tenantq benchmark --embedder fastembed
 
@@ -84,7 +105,10 @@ tenantq benchmark --embedder fastembed
 tenantq search "neural networks" --tenant acme --mode hybrid --limit 5 --embedder hash
 ```
 
-`tenant_id` / `--tenant` is mandatory. Empty tenant is refused (not treated as "zero hits").
+By default everything runs against an in-process Qdrant (`:memory:`), which
+supports sparse vectors and Query API fusion — so the benchmark produces genuine
+numbers with zero infrastructure. Point at a real server by setting `QDRANT_URL`
+(see Docker below).
 
 
 ## Configuration
