@@ -38,3 +38,13 @@ def test_created_at_range_filter(ingested, settings, embedder, dataset):
     by_id = {d.id: d for d in dataset.documents}
     for h in hits:
         assert lo <= by_id[h.id].created_at <= hi
+
+
+def test_search_rejects_non_positive_limit(ingested, settings, embedder):
+    import pytest
+    from tenantq.search import search
+
+    with pytest.raises(ValueError, match="limit must be >= 1"):
+        search(ingested, settings, embedder, "query", tenant_id="acme", limit=0)
+    with pytest.raises(ValueError, match="limit must be >= 1"):
+        search(ingested, settings, embedder, "query", tenant_id="acme", limit=-5)
