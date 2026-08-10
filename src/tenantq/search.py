@@ -91,6 +91,8 @@ def search(
     prefetch_limit: int = 50,
 ) -> List[SearchHit]:
     """Run a tenant-isolated search in the requested retrieval mode."""
+    if limit < 1:
+        raise ValueError(f"limit must be >= 1, got {limit!r}")
     qfilter = build_filter(tenant_id, category, created_after, created_before)
     params = models.SearchParams(hnsw_ef=settings.hnsw.hnsw_ef)
 
