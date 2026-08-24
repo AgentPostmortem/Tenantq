@@ -44,6 +44,12 @@ def build_filter(
     created_before: Optional[int] = None,
 ) -> models.Filter:
     """Build a tenant-scoped filter, optionally narrowed by metadata."""
+    if tenant_id is None or not str(tenant_id).strip():
+        raise ValueError(
+            "tenant_id is required: request was not scoped to a tenant "
+            "(empty or whitespace-only tenant_id)"
+        )
+    tenant_id = str(tenant_id).strip()
     must: List[models.FieldCondition] = [
         models.FieldCondition(key=TENANT_FIELD, match=models.MatchValue(value=tenant_id))
     ]
