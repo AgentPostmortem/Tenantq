@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
+import pytest
+
 from tenantq.search import search
 
 
@@ -38,3 +42,27 @@ def test_created_at_range_filter(ingested, settings, embedder, dataset):
     by_id = {d.id: d for d in dataset.documents}
     for h in hits:
         assert lo <= by_id[h.id].created_at <= hi
+
+
+@pytest.mark.parametrize("bad", ["", " ", "\t", "\n"])
+def test_search_rejects_empty_or_whitespace_query(settings, bad):
+    client = MagicMock()
+    embedder = MagicMock()
+    with pytest.raises(ValueError, match="query is required"):
+        search(client, settings, embedder, bad, tenant_id="acme", mode="hybrid")
+    embedder.embed_dense.assert_not_called()
+    embedder.embed_sparse.assert_not_called()
+    client.query_points.assert_not_called()
+
+
+def test_search_accepts_query_with_internal_spaces(ingested, settings, embedder):
+    hits = search(
+        ingested,
+        settings,
+        embedder,
+        " neural network ",
+        tenant_id="acme",
+        mode="dense",
+        limit=5,
+    )
+    assert len(hits) > 0
