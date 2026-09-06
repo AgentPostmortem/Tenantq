@@ -91,6 +91,13 @@ def search(
     prefetch_limit: int = 50,
 ) -> List[SearchHit]:
     """Run a tenant-isolated search in the requested retrieval mode."""
+    if query is None or not str(query).strip():
+        raise ValueError(
+            "query is required: empty or whitespace-only query would produce "
+            "degenerate embeddings and arbitrary-looking hits"
+        )
+    query = str(query).strip()
+
     qfilter = build_filter(tenant_id, category, created_after, created_before)
     params = models.SearchParams(hnsw_ef=settings.hnsw.hnsw_ef)
 
