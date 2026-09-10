@@ -66,3 +66,16 @@ def test_search_accepts_query_with_internal_spaces(ingested, settings, embedder)
         limit=5,
     )
     assert len(hits) > 0
+
+
+@pytest.mark.parametrize("bad", ["", "   ", "\t"])
+def test_build_filter_rejects_empty_tenant_id(bad):
+    from tenantq.search import build_filter
+    with pytest.raises(ValueError, match="not scoped"):
+        build_filter(bad)
+
+
+def test_build_filter_accepts_tenant_with_internal_spaces():
+    from tenantq.search import build_filter
+    f = build_filter("acme corp")
+    assert f.must
