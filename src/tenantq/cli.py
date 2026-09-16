@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import List, Optional
 
+import click
 import typer
 
 from .benchmark import BenchmarkResult, run_benchmark
@@ -112,7 +113,7 @@ def benchmark(
 def search(
     query: str,
     tenant: str = typer.Option(..., help="Tenant id to scope the search."),
-    mode: str = typer.Option("hybrid"),
+    mode: str = typer.Option("hybrid", click_type=click.Choice(["dense", "sparse", "hybrid"])),
     limit: int = typer.Option(5),
     category: Optional[str] = typer.Option(None),
     embedder: str = typer.Option("fastembed"),
