@@ -79,3 +79,15 @@ def test_build_filter_accepts_tenant_with_internal_spaces():
     from tenantq.search import build_filter
     f = build_filter("acme corp")
     assert f.must
+
+
+def test_build_filter_rejects_impossible_range():
+    from tenantq.search import build_filter
+    with pytest.raises(ValueError, match="must be"):
+        build_filter("acme", created_after=200, created_before=100)
+
+
+def test_build_filter_allows_wide_open_range():
+    from tenantq.search import build_filter
+    f = build_filter("acme", created_after=100, created_before=200)
+    assert f.must
