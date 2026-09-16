@@ -58,6 +58,14 @@ def build_filter(
             models.FieldCondition(key=CATEGORY_FIELD, match=models.MatchValue(value=category))
         )
     if created_after is not None or created_before is not None:
+        if (
+            created_after is not None
+            and created_before is not None
+            and created_after > created_before
+        ):
+            raise ValueError(
+                f"created_after ({created_after}) must be ≤ created_before ({created_before})"
+            )
         must.append(
             models.FieldCondition(
                 key=CREATED_AT_FIELD,
