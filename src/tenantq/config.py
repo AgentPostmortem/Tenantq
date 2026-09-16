@@ -19,6 +19,16 @@ CREATED_AT_FIELD = "created_at"
 TEXT_FIELD = "text"
 
 
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        raise ValueError(f"{name} must be an integer, got {raw!r}") from None
+
+
 @dataclass(frozen=True)
 class HnswConfig:
     """HNSW build/query parameters.
@@ -58,17 +68,17 @@ class Settings:
     @classmethod
     def from_env(cls) -> "Settings":
         hnsw = HnswConfig(
-            m=int(os.getenv("TENANTQ_HNSW_M", "16")),
-            ef_construct=int(os.getenv("TENANTQ_HNSW_EF_CONSTRUCT", "100")),
-            hnsw_ef=int(os.getenv("TENANTQ_HNSW_EF", "64")),
+            m=_env_int("TENANTQ_HNSW_M", 16),
+            ef_construct=_env_int("TENANTQ_HNSW_EF_CONSTRUCT", 100),
+            hnsw_ef=_env_int("TENANTQ_HNSW_EF", 64),
             multitenant=os.getenv("TENANTQ_MULTITENANT", "1") not in ("0", "false", "False"),
-            payload_m=int(os.getenv("TENANTQ_PAYLOAD_M", "16")),
+            payload_m=_env_int("TENANTQ_PAYLOAD_M", 16),
         )
         return cls(
             collection=os.getenv("TENANTQ_COLLECTION", "tenantq"),
             dense_model=os.getenv("TENANTQ_DENSE_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
             sparse_model=os.getenv("TENANTQ_SPARSE_MODEL", "Qdrant/bm25"),
-            dense_dim=int(os.getenv("TENANTQ_DENSE_DIM", "384")),
+            dense_dim=_env_int("TENANTQ_DENSE_DIM", 384),
             qdrant_url=os.getenv("QDRANT_URL"),
             qdrant_path=os.getenv("TENANTQ_QDRANT_PATH"),
             hnsw=hnsw,
