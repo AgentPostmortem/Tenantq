@@ -91,3 +91,24 @@ def test_build_filter_allows_wide_open_range():
     from tenantq.search import build_filter
     f = build_filter("acme", created_after=100, created_before=200)
     assert f.must
+
+
+@pytest.mark.parametrize("limit", [-1, 0, 10_000])
+def test_search_rejects_out_of_range_limit(settings, limit):
+    client = MagicMock()
+    embedder = MagicMock()
+    with pytest.raises(ValueError, match="limit must be within"):
+        search(client, settings, embedder, "dense query", tenant_id="acme", mode="dense", limit=limit)
+    client.query_points.assert_not_called()
+
+
+@pytest.mark.parametrize("prefetch_limit", [-1, 0, 100_000])
+def test_search_rejects_out_of_range_prefetch_limit(settings, prefetch_limit):
+    client = MagicMock()
+    embedder = MagicMock()
+    with pytest.raises(ValueError, match="prefetch_limit must be within"):
+        search(
+            client, settings, embedder, "hybrid query",
+            tenant_id="acme", mode="hybrid", prefetch_limit=prefetch_limit,
+        )
+    client.query_points.assert_not_called()
