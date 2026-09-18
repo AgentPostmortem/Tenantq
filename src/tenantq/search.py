@@ -114,8 +114,8 @@ def search(
 
     if not 1 <= limit <= 1000:
         raise ValueError(f"limit must be within 1-1000, got {limit!r}")
-    if not 1 <= prefetch_limit <= 1000:
-        raise ValueError(f"prefetch_limit must be within 1-1000, got {prefetch_limit!r}")
+    if not 1 <= prefetch_limit <= 10000:
+        raise ValueError(f"prefetch_limit must be within 1-10000, got {prefetch_limit!r}")
 
     qfilter = build_filter(tenant_id, category, created_after, created_before)
     params = models.SearchParams(hnsw_ef=settings.hnsw.hnsw_ef)

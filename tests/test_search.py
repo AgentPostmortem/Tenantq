@@ -102,7 +102,7 @@ def test_search_rejects_out_of_range_limit(settings, limit):
     client.query_points.assert_not_called()
 
 
-@pytest.mark.parametrize("prefetch_limit", [-1, 0, 100_000])
+@pytest.mark.parametrize("prefetch_limit", [-1, 0, 10_001])
 def test_search_rejects_out_of_range_prefetch_limit(settings, prefetch_limit):
     client = MagicMock()
     embedder = MagicMock()
@@ -112,3 +112,15 @@ def test_search_rejects_out_of_range_prefetch_limit(settings, prefetch_limit):
             tenant_id="acme", mode="hybrid", prefetch_limit=prefetch_limit,
         )
     client.query_points.assert_not_called()
+
+
+def test_search_accepts_max_prefetch_limit(settings):
+    client = MagicMock()
+    embedder = MagicMock()
+    client.query_points.return_value.points = []
+    hits = search(
+        client, settings, embedder, "hybrid query",
+        tenant_id="acme", mode="hybrid", prefetch_limit=10_000,
+    )
+    assert hits == []
+    client.query_points.assert_called_once()
