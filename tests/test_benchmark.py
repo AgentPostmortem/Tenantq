@@ -31,3 +31,26 @@ def test_benchmark_produces_numbers(ingested, settings, embedder, dataset):
     assert not math.isnan(modes["dense"].index_recall_at_10)
     # hybrid should be at least as good as the weaker single mode on recall@10
     assert modes["hybrid"].recall_at_10 >= min(modes["dense"].recall_at_10, modes["sparse"].recall_at_10)
+
+
+def test_run_benchmark_empty_queries_returns_empty_modes(settings):
+    from unittest.mock import MagicMock
+
+    from tenantq.data import Dataset
+
+    embedder = MagicMock()
+    embedder.embed_dense.return_value = []
+    result = run_benchmark(
+        MagicMock(),
+        settings,
+        embedder,
+        Dataset(documents=[], queries=[]),
+        modes=("dense",),
+    )
+    assert result.settings_summary["n_queries"] == 0
+    assert len(result.modes) == 1
+    mode = result.modes[0]
+    assert mode.n_queries == 0
+    assert mode.recall_at_5 == 0.0
+    assert mode.recall_at_10 == 0.0
+    assert mode.qps == 0.0
