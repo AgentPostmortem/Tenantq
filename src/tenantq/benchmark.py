@@ -152,8 +152,8 @@ def run_benchmark(
                 idx_recall.append(recall_at_k(retrieved, ref, 10))
 
         total_time = sum(latencies) / 1000.0
-        avg_r5 = sum(r5) / len(r5)
-        avg_r10 = sum(r10) / len(r10)
+        avg_r5 = sum(r5) / len(r5) if r5 else 0.0
+        avg_r10 = sum(r10) / len(r10) if r10 else 0.0
         RECALL_GAUGE.labels(mode=mode, k="5").set(avg_r5)
         RECALL_GAUGE.labels(mode=mode, k="10").set(avg_r10)
         result.modes.append(

@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 
 from tenantq.benchmark import percentile, recall_at_k, run_benchmark
+from tenantq.data import Dataset
 
 
 def test_percentile_and_recall_helpers():
@@ -31,3 +32,15 @@ def test_benchmark_produces_numbers(ingested, settings, embedder, dataset):
     assert not math.isnan(modes["dense"].index_recall_at_10)
     # hybrid should be at least as good as the weaker single mode on recall@10
     assert modes["hybrid"].recall_at_10 >= min(modes["dense"].recall_at_10, modes["sparse"].recall_at_10)
+
+
+def test_benchmark_zero_queries_returns_empty_modes(ingested, settings, embedder):
+    empty = Dataset(documents=[], queries=[])
+    result = run_benchmark(ingested, settings, embedder, empty)
+    assert result.settings_summary["n_queries"] == 0
+    assert result.modes
+    for m in result.modes:
+        assert m.n_queries == 0
+        assert m.recall_at_5 == 0.0
+        assert m.recall_at_10 == 0.0
+        assert m.qps == 0.0
