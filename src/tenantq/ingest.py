@@ -83,6 +83,8 @@ def ingest_documents(
     parallelism: int = 4,
 ) -> IngestReport:
     """Embed and upsert ``documents`` in parallel batches."""
+    if batch_size < 1:
+        raise ValueError("batch_size must be >= 1")
     start = time.perf_counter()
     batches = list(batched(list(documents), batch_size))
 

@@ -123,5 +123,7 @@ def build_embedder(kind: str, dense_model: str, sparse_model: str, dense_dim: in
 
 
 def batched(seq: Sequence, size: int) -> Iterable[Sequence]:
+    if size < 1:
+        raise ValueError("batch_size must be >= 1")
     for i in range(0, len(seq), size):
         yield seq[i : i + size]
